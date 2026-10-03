@@ -1,0 +1,21 @@
+[package]
+name = "ups-monitor"
+description = "Monitor de red eléctrica y UPS (Megatec QS sobre USB HID) para macOS"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.89"
+
+[dependencies]
+chrono = "0.4.45"
+eframe = "0.36.2"
+hidapi = "2.6.7"
+libc = "0.2.190"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+signal-hook = "0.4.4"
+tray-icon = "0.26.0"
+winit = "0.30"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
