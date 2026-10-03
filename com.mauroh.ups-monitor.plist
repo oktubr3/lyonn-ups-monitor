@@ -7,26 +7,26 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/python3</string>
-        <string>/Users/TU_USUARIO/Apps/ups/ups-menubar.py</string>
+        <string>/Users/TU_USUARIO/.cargo/bin/ups-monitor</string>
     </array>
 
     <key>RunAtLoad</key>
     <true/>
 
+    <!-- Se relanza si se cae, pero no si se sale con "Salir". -->
     <key>KeepAlive</key>
-    <true/>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+
+    <key>ProcessType</key>
+    <string>Interactive</string>
 
     <key>StandardOutPath</key>
-    <string>/Users/TU_USUARIO/Library/Logs/ups-menubar.log</string>
+    <string>/Users/TU_USUARIO/Library/Logs/ups-monitor.out.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/TU_USUARIO/Library/Logs/ups-menubar.log</string>
-
-    <key>EnvironmentVariables</key>
-    <dict>
-        <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
-    </dict>
+    <string>/Users/TU_USUARIO/Library/Logs/ups-monitor.out.log</string>
 </dict>
 </plist>
