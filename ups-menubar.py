@@ -5,6 +5,7 @@ import rumps
 import hid
 import time
 import os
+import queue
 import threading
 from datetime import datetime
 
@@ -104,18 +105,29 @@ class UPSMenuBar(rumps.App):
             self.quit_item,
         ]
 
-        # Hilo de polling en background
+        # Hilo de polling en background: solo consulta el HID y encola el resultado.
+        # Toda escritura de UI (AppKit) va por el timer, que corre en el hilo principal.
+        self._results = queue.Queue()
+        self._ui_timer = rumps.Timer(self._drain, 1)
+        self._ui_timer.start()
+
         t = threading.Thread(target=self._poll_loop, daemon=True)
         t.start()
 
     def _poll_loop(self):
         while True:
-            self._refresh()
+            self._results.put(_query())
             time.sleep(POLL_SEC)
 
-    def _refresh(self):
-        s = _query()
+    def _drain(self, _):
+        while True:
+            try:
+                s = self._results.get_nowait()
+            except queue.Empty:
+                return
+            self._apply(s)
 
+    def _apply(self, s):
         if s is None:
             self._connected = False
             self.title = "⚡ ?"
