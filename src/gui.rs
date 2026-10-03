@@ -25,6 +25,7 @@ use crate::model::{
     runtime_minutes,
 };
 use crate::monitor::{self, Live, Shared, unix_now};
+use crate::protocol::Status;
 use crate::store::{Event, EventKind, Point, Stats, Store, data_dir};
 use crate::theme::{self, font};
 
@@ -114,7 +115,7 @@ pub fn run(options: Options) -> Result<(), String> {
     let native = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_title("UPS — Red eléctrica")
-            .with_inner_size([1180.0, 900.0])
+            .with_inner_size([1180.0, 960.0])
             .with_min_inner_size([940.0, 560.0])
             .with_visible(show),
         // Sin ícono en el Dock: la app vive en la barra de menú.
@@ -593,8 +594,23 @@ impl eframe::App for App {
             _ => return,
         };
         self.limits = Limits::new(live.rating.voltage);
+        self.vin_smooth = match live.status {
+            Some(s) if live.connected && !s.flags.on_battery() => Some(
+                self.vin_smooth
+                    .map_or(s.input_v, |v| v + (s.input_v - v) * 0.1),
+            ),
+            _ => None,
+        };
+        // El estado se decide con la tensión suavizada: con la cruda, una red
+        // cercana a un umbral cambiaría de estado a cada segundo.
         let state = match live.status {
-            Some(s) if live.connected => GridState::of(&s, &self.limits),
+            Some(s) if live.connected => GridState::of(
+                &Status {
+                    input_v: self.vin_smooth.unwrap_or(s.input_v),
+                    ..s
+                },
+                &self.limits,
+            ),
             _ => GridState::Disconnected,
         };
         if state != self.state {
@@ -603,13 +619,6 @@ impl eframe::App for App {
             self.state_since = (!first).then(unix_now);
             self.state = state;
         }
-        self.vin_smooth = match live.status {
-            Some(s) if live.connected && !s.flags.on_battery() => Some(
-                self.vin_smooth
-                    .map_or(s.input_v, |v| v + (s.input_v - v) * 0.1),
-            ),
-            _ => None,
-        };
         if let Some(tray) = &mut self.tray {
             tray.update(&live, state, &self.limits, self.vin_smooth);
         }
@@ -628,6 +637,7 @@ impl eframe::App for App {
                 ScrollArea::vertical().auto_shrink(false).show(ui, |ui| {
                     self.header(ui);
                     self.flow(ui);
+                    self.heatmap(ui);
                     self.range_bar(ui);
                     let gap = ui.spacing().item_spacing.x;
                     let side = 330.0;
@@ -640,7 +650,6 @@ impl eframe::App for App {
                             self.events(ui);
                         });
                     });
-                    self.heatmap(ui);
                 });
             });
     }
@@ -729,8 +738,11 @@ impl App {
                 "Sin cambios desde que inició el monitor".into()
             }
             _ => match &self.live.error {
-                Some(e) => format!("Buscando el UPS por USB… ({e})"),
-                None => "Buscando el UPS por USB…".into(),
+                // Otro proceso (p. ej. el software del fabricante) lo tiene abierto.
+                Some(e) if e.contains("exclusive access") => {
+                    "El UPS está conectado, pero otro programa lo tiene tomado".into()
+                }
+                _ => "Buscando el UPS por USB…".into(),
             },
         };
         p.text(

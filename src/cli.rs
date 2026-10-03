@@ -7,7 +7,7 @@ use chrono::{Local, TimeZone};
 
 use crate::device::Ups;
 use crate::model::{
-    GridState, Limits, Severity, battery_pct, format_duration, load_watts, runtime_minutes,
+    GridState, Limits, Severity, battery_pct, format_duration, load_watts, num, runtime_minutes,
 };
 use crate::monitor::unix_now;
 use crate::protocol::{Flags, Rating, Status};
@@ -120,25 +120,26 @@ fn render(s: &Status, rating: &Rating) -> String {
         line("  Tensión entrada   —".into());
     } else {
         line(format!(
-            "  Tensión entrada   {:.1} V  ({:+.1} % de {:.0} V)",
-            s.input_v,
-            limits.deviation_pct(s.input_v),
-            limits.nominal
+            "  Tensión entrada   {} V  ({}{} % de {} V)",
+            num(s.input_v, 1),
+            if s.input_v >= limits.nominal { "+" } else { "" },
+            num(limits.deviation_pct(s.input_v), 1),
+            num(limits.nominal, 0)
         ));
     }
-    line(format!("  Tensión salida    {:.1} V", s.output_v));
-    line(format!("  Frecuencia        {:.1} Hz", s.freq_hz));
+    line(format!("  Tensión salida    {} V", num(s.output_v, 1)));
+    line(format!("  Frecuencia        {} Hz", num(s.freq_hz, 1)));
     line(format!(
-        "  Carga             {} %  (~{:.0} W)",
+        "  Carga             {} %  (~{} W)",
         s.load_pct,
-        load_watts(s.load_pct)
+        num(load_watts(s.load_pct), 0)
     ));
     line(String::new());
     line(format!(
-        "  Batería           [{bar_color}{}{NC}{}] {pct} %  ({:.1} V)",
+        "  Batería           [{bar_color}{}{NC}{}] {pct} %  ({} V)",
         "█".repeat(filled),
         "░".repeat(20 - filled),
-        s.batt_v
+        num(s.batt_v, 1)
     ));
     line(format!("  Autonomía est.    {runtime}"));
     if !flags.is_empty() {

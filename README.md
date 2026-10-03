@@ -10,11 +10,11 @@ Monitor de la red eléctrica y del UPS Lyonn CTB-800V para macOS, escrito en Rus
 
 - **Barra de menú**: tensión de entrada en vivo (`⚡ 231 V`), o el porcentaje de batería durante un corte (`🔋 85%`). El menú resume el estado y abre el tablero.
 - **Camino de la energía**: red → UPS → equipos, con la batería, en vivo.
+- **El cuadro de la red**: 14 días × 24 horas, una celda cada 10 minutos pintada según la tensión media; los cortes en rojo.
 - **Gráficos** de tensión (entrada y salida), frecuencia, batería y carga, para los últimos 15 minutos, 1 h, 6 h, 24 h, 7 días o 30 días. El cursor se enlaza entre los cuatro y los cortes de luz se marcan en rojo.
 - **Calidad de la red** en el período: tiempo en cada banda de tensión, disponibilidad, cortes, tiempo con AVR activo y extremos de cada magnitud.
 - **Distribución** de la tensión de entrada.
 - **Eventos**: cortes, bajas tensiones, sobretensiones, AVR, batería baja y fallas, con inicio y duración.
-- **El cuadro de la red**: 14 días × 24 horas, una celda cada 10 minutos pintada según la tensión media; los cortes en rojo.
 - **Notificaciones** cuando se va o vuelve la luz, con batería crítica, falla del UPS o tensión fuera de norma.
 
 | Ícono | Significado |
@@ -46,7 +46,7 @@ El chip habla el protocolo Megatec/Voltronic, así que debería funcionar con ot
 ## Requisitos
 
 - macOS (probado en macOS 27 sobre Apple Silicon)
-- [Rust](https://rustup.rs) 1.89 o superior (solo para compilar)
+- [Rust](https://rustup.rs) estable reciente, solo para compilar (probado con 1.96)
 
 `hidapi` y SQLite se compilan dentro del binario: no hace falta Homebrew.
 
