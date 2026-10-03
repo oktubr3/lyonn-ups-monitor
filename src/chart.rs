@@ -203,15 +203,18 @@ impl Chart<'_> {
                 plot.y_range(),
                 Stroke::new(1.0, theme::alpha(theme::GRID, 140)),
             );
-            let midnight = (t + offset).rem_euclid(86_400) == 0;
-            let label = format_ts(t, if midnight { "%d/%m" } else { "%H:%M" });
-            painter.text(
-                pos2(x, plot.bottom() + 4.0),
-                Align2::CENTER_TOP,
-                label,
-                font(10.5),
-                theme::MUTED,
-            );
+            // Una etiqueta pegada al borde derecho quedaría cortada.
+            if x <= plot.right() - 16.0 {
+                let midnight = (t + offset).rem_euclid(86_400) == 0;
+                let label = format_ts(t, if midnight { "%d/%m" } else { "%H:%M" });
+                painter.text(
+                    pos2(x, plot.bottom() + 4.0),
+                    Align2::CENTER_TOP,
+                    label,
+                    font(10.5),
+                    theme::MUTED,
+                );
+            }
             t += x_step;
         }
         painter.hline(plot.x_range(), plot.bottom(), Stroke::new(1.0, theme::AXIS));
